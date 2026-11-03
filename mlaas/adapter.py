@@ -8,6 +8,7 @@ import time
 from contextlib import asynccontextmanager, contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import quote
 
 import httpx
 from fastapi import FastAPI, HTTPException
@@ -20,6 +21,7 @@ BROKER = os.getenv('BROKER_URL', 'http://localhost:1026') + '/ngsi-ld/v1/'
 PUBLIC = os.getenv('ADAPTER_URL', 'http://host.docker.internal:8000')
 DB = os.getenv('STATE_DB', 'adapter.db')
 stop = threading.Event()
+runtime_lock = threading.RLock()
 
 
 @contextmanager
@@ -44,6 +46,8 @@ def initialize():
         CREATE TABLE IF NOT EXISTS events (seq INTEGER PRIMARY KEY AUTOINCREMENT,
           time TEXT, kind TEXT, payload TEXT);
         ''')
+        from mlaas.demo import initialize_demo
+        initialize_demo(conn)
 
 
 def event(kind, payload):
@@ -80,7 +84,7 @@ def normalize(item):
 
 
 def entity(entity_id):
-    return normalize(broker('GET', 'entities/' + entity_id).json())
+    return normalize(broker('GET', 'entities/' + quote(entity_id, safe='')).json())
 
 
 def frozen(processing, model):
@@ -202,6 +206,9 @@ def execute(job):
                   'predictionType': prop('classification'),
                   'predictedAt': prop(datetime.now(timezone.utc).isoformat()),
                   'executionId': prop(job['id']), '@context': CONTEXT}
+    from mlaas.demo import owns_source
+    if owns_source(source['id']):
+        prediction['demoOwner'] = source['demoOwner']
     response = broker('POST', 'entities', prediction, allowed=(201, 409))
     if response.status_code == 409:
         existing = entity(job['id'])
@@ -211,12 +218,14 @@ def execute(job):
     event('prediction', prediction)
 
 
-def worker():
-    while not stop.wait(.2):
+def work_once():
+    from mlaas.demo import source_blocked
+    with runtime_lock:
         with database() as conn:
-            job = conn.execute("SELECT * FROM jobs WHERE status='pending' AND next<=? ORDER BY rowid LIMIT 1", (time.time(),)).fetchone()
+            jobs = conn.execute("SELECT * FROM jobs WHERE status='pending' AND next<=? ORDER BY rowid", (time.time(),)).fetchall()
+        job = next((j for j in jobs if not source_blocked(json.loads(j['payload'])['source'])), None)
         if not job:
-            continue
+            return
         try:
             execute(job)
             with database() as conn:
@@ -229,6 +238,11 @@ def worker():
                 conn.execute('UPDATE jobs SET status=?, attempts=attempts+1, next=? WHERE id=?',
                              ('failed' if permanent else 'pending', time.time() + min(60, 2 ** min(job['attempts'], 6)), job['id']))
             event('error', {'executionId': job['id'], 'error': str(error), 'retry': not permanent})
+
+
+def worker():
+    while not stop.wait(.2):
+        work_once()
 
 
 @asynccontextmanager
@@ -277,6 +291,12 @@ def reconcile_api(body: dict):
 
 @app.post('/notifications/{key}', status_code=202)
 def notifications(key: str, body: dict):
+    with runtime_lock:
+        return accept_notification(key, body)
+
+
+def accept_notification(key, body):
+    from mlaas.demo import source_blocked
     with database() as conn:
         configs = conn.execute('SELECT id,payload FROM configs').fetchall()
     config = next((json.loads(c['payload']) for c in configs if digest(c['id']) == key), None)
@@ -290,13 +310,29 @@ def notifications(key: str, body: dict):
         raise HTTPException(422, 'notification needs source IDs')
     if value(entity(p['id']), 'processingStatus') != 'active':
         return {'queued': 0, 'status': 'paused'}
-    event('notification', body)
+    data = [source for source in data if not source_blocked(source['id'])]
+    if not data:
+        return {'accepted': 0, 'status': 'demo reset'}
+    event('notification', {**body, 'data': data})
     with database() as conn:
         for source in data:
             job_id = prediction_id(p, m, source['id'])
             conn.execute('INSERT OR IGNORE INTO jobs(id,payload) VALUES (?,?)',
                          (job_id, json.dumps({**config, 'source': source['id']})))
     return {'accepted': len(data)}
+
+
+@app.get('/inspect/{resource}')
+def inspect_resource(resource: str, id: str):
+    if resource not in ('entities', 'subscriptions'):
+        raise HTTPException(404, 'unknown resource')
+    try:
+        response = broker('GET', resource + '/' + quote(id, safe=''), allowed=(200, 404))
+        if response.status_code == 404:
+            raise HTTPException(404, 'broker resource not found: ' + id)
+        return response.json()
+    except (RuntimeError, httpx.HTTPError) as error:
+        raise HTTPException(502, str(error))
 
 
 @app.get('/events')

@@ -107,3 +107,46 @@ would need broker authorization outside this local v1 scope.
 
 See [verification and limitations](implementation.md), including JSON-LD
 compaction and numeric serialization behavior observed in the selected broker.
+
+## Inspector and owned demo reset
+
+`GET /inspect/entities?id=...` and `GET /inspect/subscriptions?id=...` proxy an
+exact broker resource without substituting example payloads or normalized state.
+The dashboard side panel displays properties, relationships and raw JSON-LD.
+Its flow navigation moves between existing sections; no new service is added.
+
+Replay is now ownership-aware. Both UI and CLI use `POST /inject`. SQLite stores
+a persistent owner token, stable per-sample IDs, expected source payloads, replay
+position and counters. A source is reserved before broker POST so an ambiguous
+network response remains recoverable. The `demoOwner` Property is a project
+extension on owned observations and adapter outputs, not a new entity type.
+A marker alone does not authorize deletion: a local ownership record is required.
+
+`POST /demo/reset` requires `confirm:true`, persists a reset gate and advances the
+replay generation before starting a local background thread. It waits on the
+same process lock used for one inference job, notification acceptance and each
+replay creation. The active HTTP invocation may finish; its prediction is then
+removed. The old replay generation cannot resume even if reset finishes before
+the replay HTTP request unwinds. New demo work is blocked while reset is running
+or failed. Unrelated sources retain their jobs and notifications.
+
+For each tracked source, reset checks ownership and pinned lineage of journaled
+predictions, deletes those predictions, then checks and deletes the source. Each
+deletion is followed by GET verification (404 required). Only after the complete
+source group is absent does one SQLite transaction remove its dedup jobs and
+associated trace and mark the source inactive. Mixed notification trace records
+retain unrelated source entries. Unjournaled outputs are preserved even if they
+reference a demo source. There is no type-wide broker scan or bulk deletion.
+
+Partial success is committed per source. Failures retain that source's jobs,
+trace and ownership, with replay blocked. A confirmed retry tolerates 404s for
+already deleted entities. Restart changes an interrupted reset to failed and
+keeps the gate closed until retry. Inactive ownership records are retained as
+tombstones to ignore late notifications; replay reactivates them using the same
+IDs. Successful reset zeros position and counters and preserves configuration
+pins, subscriptions, deployment and artifacts.
+
+This coordination assumes one adapter process, as configured in Compose. It does
+not protect against arbitrary concurrent broker writers ignoring the immutable
+source contract. Lost ownership journals and pre-upgrade replay entities cannot
+be reconstructed safely and are never adopted for deletion.

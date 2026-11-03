@@ -54,3 +54,22 @@ port 18080. `BROKER_URL` defaults to `http://localhost:1026`.
 `TEST_CALLBACK_URL` and `TEST_CONTEXT_URL` can override the container-reachable
 receiver URLs. A JSON-LD body includes its context; requests without a body use
 a Link header. Sending both with `application/ld+json` is rejected by coraine.
+
+## Inspect and reset the dashboard demo
+
+CLI injection uses the adapter's ownership-aware replay endpoint. Do not post
+directly to the broker if you expect Reset Demo to own the resulting sample.
+
+```sh
+python -m mlaas.cli inject --count 1 --start 0
+curl -fsS 'http://localhost:8000/inspect/entities?id=urn:ngsi-ld:MLModel:WaterPotability:v1'
+curl -fsS http://localhost:8000/demo/reset \
+  -H 'Content-Type: application/json' -d '{"confirm":true}'
+curl -fsS http://localhost:8000/demo
+```
+
+Poll `/demo` until reset succeeds or fails. After a failure, resolve the listed
+broker/ownership error and repeat the confirmed request. A failed reset blocks
+demo replay; it retains affected dedup jobs and trace. Clear View has no backend
+operation and is available only in the browser. Model, processing, subscription,
+serving and training remain intact during either operation.

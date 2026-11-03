@@ -72,3 +72,16 @@ recall 0.240 and F1 0.345. Confusion matrix (actual rows, predicted columns,
 labels 0 and 1) is `[[271,29],[146,46]]`. Low class-1 recall is a substantial model
 limitation, not a deployment failure. No confidence score is emitted because
 the selected sklearn serving contract returns class labels only.
+
+## Explicit demo cleanup
+
+Reset Demo is separate from training, serving and registration. After user
+confirmation it deletes only ownership-journaled replay sources and their
+adapter-generated predictions, verifies their absence, then removes the
+associated dedup jobs and trace. No artifacts, metrics, registered configuration
+or subscriptions are removed. Counters and replay position reset only after all
+source groups succeed. Replaying a deleted sample uses its original stable ID;
+it never overwrites an existing observation. A failed or interrupted reset must
+be retried before demo inference or replay resumes. Pre-upgrade and external
+sources remain outside this cleanup boundary. See [architecture](architecture.md)
+for the per-source commit order and delayed-notification handling.

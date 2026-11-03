@@ -106,7 +106,7 @@ After training and registration:
 
 ```sh
 RUN_BROKER_TESTS=1 RUN_RESTART_TESTS=1 RUN_E2E_TESTS=1 RUN_RECOVERY_TESTS=1 \
-  python -m pytest tests -q --disable-warnings
+  RUN_DEMO_TESTS=1 python -m pytest tests -q --disable-warnings
 
 # Optional dashboard DOM test, Node.js 18+.
 npm ci --ignore-scripts
@@ -132,3 +132,65 @@ and input model without changing the inference adapter.
 The existing SDM vocabulary is reused selectively; project extensions are
 explicit. No full official SDM conformance is claimed. See
 [implementation decisions and troubleshooting](docs/implementation.md).
+
+## Dashboard inspection and demo reset
+
+Click a model, processing, subscription, sample or prediction to open the side
+inspector. It fetches the current broker resource, shows its properties and raw
+JSON-LD, and links relationships. From a prediction, follow `refInputEntity`,
+`refMLModel` or `refMLProcessing`; use Back, Close or Escape to navigate. The
+processing's `refSubscription` opens the real subscription API resource. The
+serving endpoint is displayed as text because inference requires an HTTP POST.
+The flow buttons move to their corresponding dashboard sections.
+
+**Clear View** closes the inspector, clears the observation filter, displayed
+messages and loaded trace. It only changes this browser's view. Broker entities,
+journal, replay position and counters remain intact; new events still appear.
+
+**Reset Demo** asks for confirmation, stops replay, waits for any active inference,
+and removes this demo's tracked observations, generated predictions and associated
+jobs/events. Model/processing metadata, subscriptions, unrelated data, serving
+and artifacts stay intact. Progress reports how many samples have been removed.
+After success, counters and start row return to zero; replaying the same rows
+reuses the same sample IDs and produces predictions again.
+
+A failed reset retains the affected dedup records and blocks demo replay/work.
+Resolve the reported error and click **Retry Reset Demo**. This also works after
+an adapter restart. Reset can finish while model serving is offline; it needs the
+broker for deletion and verification. Unrelated pending work continues after a
+failed reset. This is a single-process local demo.
+
+Dashboard and CLI injections now share the adapter's ownership journal. Replay
+uses the selected adapter's configured `DEMO_DIR` and broker; `--artifact` and
+`--broker` configure the registration commands:
+
+```sh
+python -m mlaas.cli inject --adapter http://localhost:8000 --count 10 --start 0
+curl -fsS http://localhost:8000/demo
+curl -fsS http://localhost:8000/demo/reset \
+  -H 'Content-Type: application/json' -d '{"confirm":true}'
+```
+
+The reset request returns HTTP 202; poll `/demo` until `reset.status` is
+`succeeded` or `failed`. Duplicate reset requests while running return current
+progress. HTTP 202 alone does not mean deletion has finished.
+
+Records injected before this ownership journal was added, or posted directly to
+the broker, are deliberately preserved. Reset cannot safely infer ownership from
+their type or ID. Do not delete the adapter volume to clear the dashboard: that
+would lose the ownership and deduplication records.
+
+Run the extended safety tests on the local development stack:
+
+```sh
+RUN_BROKER_TESTS=1 RUN_RESTART_TESTS=1 RUN_E2E_TESTS=1 RUN_RECOVERY_TESTS=1 \
+  RUN_DEMO_TESTS=1 python -m pytest tests -q --disable-warnings
+npm run test:dashboard
+```
+
+Run the Python and dashboard suites sequentially; both exercise Reset Demo on the
+same local stack. The reset unit tests inject failures; `RUN_DEMO_TESTS=1` adds
+real broker/serving inspection, metadata preservation, ownership and ID reuse
+checks. The recovery flag also tests reset during a serving outage, broker outage
+and adapter restart. The dashboard suite follows every rendered resource/trace
+link and checks navigation, confirmation and Clear View isolation.

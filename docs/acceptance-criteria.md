@@ -45,3 +45,28 @@ The dashboard DOM suite also passed against live services. See
 No full official SDM schema conformance or exact decimal-text roundtrip is
 claimed. No Orion-LD fallback was needed or tested. MLflow's dependency
 Pydantic deprecation warnings do not affect the tested flows.
+
+## Dashboard/reset verification update (2026-11-03)
+
+The extended Python suite passed **21 tests, 46.19 seconds, no skips**, with
+`RUN_BROKER_TESTS`, `RUN_RESTART_TESTS`, `RUN_E2E_TESTS`, `RUN_RECOVERY_TESTS` and
+`RUN_DEMO_TESTS` all enabled. This includes 13 controlled reset safety tests and
+two real broker/serving demo tests in addition to the original six checks.
+
+- AC-08: the live dashboard suite follows prediction -> exact source, model and
+  processing, plus processing -> actual subscription. The prediction inspector
+  also reads the exact model's version from the broker.
+- AC-09: real reset/replay checks recreate the same source and prediction IDs with
+  a fresh prediction timestamp after verified deletion and dedup cleanup.
+- AC-11: resource/trace buttons and section navigation act; inspector history,
+  visible lookup errors, Clear View without backend writes, reset confirmation,
+  progress/error handling and replay reuse are exercised. Clear View also ignores
+  an older poll response arriving after the action.
+- Reset safety: unrelated same-type entities, foreign outputs referencing a demo
+  source, configuration pins, subscription configuration, serving and artifacts
+  are preserved. Broker/serving failure, pending and in-flight inference, adapter
+  restart, partial deletion, lost replies and retry behavior are tested.
+
+See [implementation results](implementation.md) for actual dashboard link counts
+and scope boundaries. DOM verification does not establish browser visual layout;
+visual QA and a second dataset remain unverified.

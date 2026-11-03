@@ -142,3 +142,66 @@ API suite against a pinned Orion-LD deployment following its
 Orion-LD and its storage deployment have not been tested here; no fallback Compose
 configuration is claimed to work. Retest examples, subscriptions, persistence and
 recovery before switching brokers.
+
+## Dashboard inspection and reset update (2026-11-03)
+
+The current feature branch adds broker-backed entity/subscription inspection,
+relationship navigation with Back/Close/Escape, section navigation, a browser-only
+Clear View and confirmed ownership-aware Reset Demo. `mlaas/demo.py` owns the
+water replay/reset controls; the generic worker still uses standard broker
+notifications. No new entity type or service is introduced.
+
+CLI replay now uses the same adapter endpoint as the dashboard. Stable sample
+IDs, an owner marker and SQLite ownership records replace untracked random-batch
+IDs for new replay requests. A duplicate row returns 409 until reset. Pre-upgrade
+or externally posted records are intentionally not adopted or deleted. Unrelated
+predictions referencing an owned source are also preserved; their writer owns
+their lifecycle. See [architecture](architecture.md) for the reset commit order,
+restart gate, tombstones and single-process boundary.
+
+Clear View drops only local selection/history, filters, messages and the loaded
+trace cursor. Late poll responses cannot restore the old view. Reset progress
+is read separately from broker state so an unavailable broker does not hide the
+reset failure. Failed reset blocks demo work and retains affected dedup jobs and
+trace; successful per-source groups stay committed and retries tolerate 404s.
+
+Additional executed checks:
+
+- Controlled SQLite/API tests: 13 passed. They cover required confirmation,
+  retained configuration/unrelated traces, prediction/source deletion and GET
+  verification failures, changed ownership/lineage, in-flight inference,
+  interrupted reset recovery, delayed notifications, active replay cancellation,
+  unrelated pending work, per-source partial commits and lost creation replies.
+- Real broker/serving demo tests passed. They verify current inspector payloads,
+  unchanged model/processing/subscription configuration and artifacts, preservation
+  of unrelated same-type entities and unjournaled predictions, journal cleanup,
+  reset counters, stable sample/prediction ID reuse and a fresh prediction time.
+- A real serving outage leaves a pending job; a broker outage makes reset fail
+  visibly. Adapter restart retains the failed gate and dedup job. Restoring the
+  broker and retrying completes reset while serving remains offline. Restoring
+  serving permits the same sample to generate a prediction again.
+- Live dashboard DOM test passed across 301 rendered resource buttons, 100 trace
+  buttons and five flow navigation actions, plus all three prediction provenance
+  paths, the processing subscription link, Back/Close/Escape, real 404 display,
+  cancelled confirmation, Clear View without backend writes, a delayed polling
+  response, a controlled reset transport error, confirmed reset, sample reuse, replay position on reload and polling after page return.
+
+Subscription delivery counters and last-delivery timestamps legitimately change
+when observations are replayed. Preservation checks compare subscription IDs,
+selectors, filter, watched attributes and endpoint/format configuration.
+
+Browser visual access remains unavailable in this environment. These are real
+HTTP and DOM checks, not screenshot/layout verification. A second dataset remains
+outside the executed coverage. The original training/broker limitations above
+still apply.
+
+Final combined Python command:
+
+```sh
+RUN_BROKER_TESTS=1 RUN_RESTART_TESTS=1 RUN_E2E_TESTS=1 RUN_RECOVERY_TESTS=1 \
+  RUN_DEMO_TESTS=1 .venv/bin/python -m pytest tests -q --disable-warnings
+```
+
+Result: **21 passed, 17 dependency deprecation warnings, 46.19 seconds, no skips**.
+Compose validation and `git diff --check` also pass. Tests are run sequentially
+with the dashboard suite because both exercise the same demo control state.

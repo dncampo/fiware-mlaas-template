@@ -1,7 +1,6 @@
 """Explicit registration and immutable demo injection."""
 import argparse
 import json
-import uuid
 from pathlib import Path
 
 import httpx
@@ -30,16 +29,6 @@ def post_entity(broker_url, body):
     return body['id']
 
 
-def inject(artifact, count=1, start=0, broker_url='http://localhost:1026'):
-    metadata = json.loads((artifact / 'metadata.json').read_text())
-    frame = pd.read_csv(artifact / 'demo.csv')
-    if count < 1 or count > 100 or start < 0 or start + count > len(frame):
-        raise ValueError('replay requires 1-100 available demo rows')
-    batch = uuid.uuid4().hex
-    return [post_entity(broker_url, observation(row, metadata, batch))
-            for _, row in frame.iloc[start:start+count].iterrows()]
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=['register-model', 'register-processing', 'inject'])
@@ -52,6 +41,11 @@ def main():
     parser.add_argument('--count', type=int, default=1)
     parser.add_argument('--start', type=int, default=0)
     args = parser.parse_args()
+    if args.command == 'inject':
+        response = httpx.post(args.adapter + '/inject', json={'count': args.count, 'start': args.start}, timeout=120)
+        response.raise_for_status()
+        print(json.dumps(response.json(), indent=2))
+        return
     metadata = json.loads((args.artifact / 'metadata.json').read_text())
     model_id = 'urn:ngsi-ld:MLModel:WaterPotability:' + metadata['version']
     if args.command == 'register-model':
@@ -80,8 +74,6 @@ def main():
         response = httpx.post(args.adapter + '/processings/reconcile', json={'id': processing['id']}, timeout=30)
         response.raise_for_status()
         print(response.text)
-    else:
-        print(json.dumps(inject(args.artifact, args.count, args.start, args.broker), indent=2))
 
 
 if __name__ == '__main__':

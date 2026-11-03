@@ -154,3 +154,20 @@ artifact and version; new versions require new endpoints and model IDs.
 `predictionScore` and `scoreMeaning` remain optional contract fields; the current
 class-label serving path omits them. See implementation notes for the broker's
 nine-decimal response serialization limit and application immutability boundary.
+
+## Demo ownership extension
+
+`demoOwner` (Property/string) is a project-only operational marker on observations
+created through the adapter replay API and their generated predictions. Its value
+is the persistent local demo owner token. Reset also requires the corresponding
+SQLite ownership record and verifies the source payload or prediction lineage;
+this Property alone is not proof of ownership. It is not an ML input feature and
+does not add a context entity type. Training provenance remains `sourceDataset`
+and `sampleId`. Pre-upgrade and externally posted entities are preserved.
+
+Owned replay IDs are stable within the adapter journal. Normally observations
+remain immutable and IDs cannot be replayed twice (409). An explicitly confirmed
+Reset Demo ends that demonstration by verifying deletion of source and outputs
+before removing dedup jobs. A subsequent replay can create those same IDs again.
+This is a local demo lifecycle operation, not permission to overwrite a source
+or change the model binding of an existing prediction.
