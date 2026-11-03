@@ -1,0 +1,56 @@
+{
+  "id": "urn:ngsi-ld:MLPrediction:water-demo-01:sample-0042:v1",
+  "type": "MLPrediction",
+  "refInputEntity": {
+    "type": "Relationship",
+    "object": "urn:ngsi-ld:WaterQualityObserved:Sample:0042"
+  },
+  "refMLModel": {
+    "type": "Relationship",
+    "object": "urn:ngsi-ld:MLModel:WaterPotability:v1"
+  },
+  "refMLProcessing": {
+    "type": "Relationship",
+    "object": "urn:ngsi-ld:MLProcessing:water-demo-01"
+  },
+  "predictedValue": {
+    "type": "Property",
+    "value": 1
+  },
+  "predictionType": {
+    "type": "Property",
+    "value": "classification"
+  },
+  "predictionScore": {
+    "type": "Property",
+    "value": 0.82
+  },
+  "scoreMeaning": {
+    "type": "Property",
+    "value": "probability_of_class_1"
+  },
+  "predictedAt": {
+    "type": "Property",
+    "value": "2026-11-03T10:00:00Z"
+  },
+  "executionId": {
+    "type": "Property",
+    "value": "demo-execution-0042"
+  },
+  "@context": {
+    "@vocab": "https://example.org/fiware-mlaas/terms/",
+    "id": "@id",
+    "type": "@type",
+    "Relationship": "https://uri.etsi.org/ngsi-ld/Relationship",
+    "Property": "https://uri.etsi.org/ngsi-ld/Property",
+    "object": {
+      "@id": "https://uri.etsi.org/ngsi-ld/hasObject",
+      "@type": "@id"
+    },
+    "value": "https://uri.etsi.org/ngsi-ld/hasValue",
+    "observedAt": {
+      "@id": "https://uri.etsi.org/ngsi-ld/observedAt",
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  }
+}

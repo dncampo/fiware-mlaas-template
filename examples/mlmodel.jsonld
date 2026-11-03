@@ -1,0 +1,82 @@
+{
+  "id": "urn:ngsi-ld:MLModel:WaterPotability:v1",
+  "type": "MLModel",
+  "name": {
+    "type": "Property",
+    "value": "Water Potability (teaching example)"
+  },
+  "description": {
+    "type": "Property",
+    "value": "Binary classifier for tabular water-quality features; not a safety assessment"
+  },
+  "algorithm": {
+    "type": "Property",
+    "value": "RandomForestClassifier"
+  },
+  "mlFramework": {
+    "type": "Property",
+    "value": "scikit-learn"
+  },
+  "version": {
+    "type": "Property",
+    "value": "1"
+  },
+  "inputAttributes": {
+    "type": "Property",
+    "value": [
+      "ph",
+      "Hardness",
+      "Solids",
+      "Chloramines",
+      "Sulfate",
+      "Conductivity",
+      "Organic_carbon",
+      "Trihalomethanes",
+      "Turbidity"
+    ]
+  },
+  "acceptableDataTypes": {
+    "type": "Property",
+    "value": [
+      "WaterQualityObserved"
+    ]
+  },
+  "outputAttributes": {
+    "type": "Property",
+    "value": [
+      "predictedValue",
+      "predictionScore"
+    ]
+  },
+  "outputDataTypes": {
+    "type": "Property",
+    "value": [
+      "integer",
+      "number"
+    ]
+  },
+  "servingEndpoint": {
+    "type": "Property",
+    "value": "http://ml-serving:5000/invocations"
+  },
+  "artifactURI": {
+    "type": "Property",
+    "value": "./artifacts/water-potability/v1"
+  },
+  "@context": {
+    "@vocab": "https://example.org/fiware-mlaas/terms/",
+    "id": "@id",
+    "type": "@type",
+    "Relationship": "https://uri.etsi.org/ngsi-ld/Relationship",
+    "Property": "https://uri.etsi.org/ngsi-ld/Property",
+    "object": {
+      "@id": "https://uri.etsi.org/ngsi-ld/hasObject",
+      "@type": "@id"
+    },
+    "value": "https://uri.etsi.org/ngsi-ld/hasValue",
+    "observedAt": {
+      "@id": "https://uri.etsi.org/ngsi-ld/observedAt",
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  }
+}

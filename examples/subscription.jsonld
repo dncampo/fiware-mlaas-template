@@ -1,0 +1,34 @@
+{
+  "type": "Subscription",
+  "entities": [
+    {
+      "type": "WaterQualityObserved"
+    }
+  ],
+  "watchedAttributes": [
+    "turbidity"
+  ],
+  "q": "turbidity>4",
+  "notification": {
+    "endpoint": {
+      "uri": "http://ml-adapter:8000/notifications",
+      "accept": "application/json"
+    }
+  },
+  "@context": {
+    "@vocab": "https://example.org/fiware-mlaas/terms/",
+    "id": "@id",
+    "type": "@type",
+    "Relationship": "https://uri.etsi.org/ngsi-ld/Relationship",
+    "Property": "https://uri.etsi.org/ngsi-ld/Property",
+    "object": {
+      "@id": "https://uri.etsi.org/ngsi-ld/hasObject",
+      "@type": "@id"
+    },
+    "value": "https://uri.etsi.org/ngsi-ld/hasValue",
+    "observedAt": {
+      "@id": "https://uri.etsi.org/ngsi-ld/observedAt",
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "id": "urn:ngsi-ld:MLProcessing:water-demo-01",
+  "type": "MLProcessing",
+  "name": {
+    "type": "Property",
+    "value": "Water potability inference on turbidity change"
+  },
+  "refMLModel": {
+    "type": "Relationship",
+    "object": "urn:ngsi-ld:MLModel:WaterPotability:v1"
+  },
+  "subscriptionData": {
+    "type": "Property",
+    "value": {
+      "entities": [
+        {
+          "type": "WaterQualityObserved"
+        }
+      ],
+      "watchedAttributes": [
+        "turbidity"
+      ],
+      "q": "turbidity>4"
+    }
+  },
+  "inputMapping": {
+    "type": "Property",
+    "value": {
+      "ph": "ph",
+      "Hardness": "hardness",
+      "Solids": "solids",
+      "Chloramines": "chloramines",
+      "Sulfate": "sulfate",
+      "Conductivity": "conductivity",
+      "Organic_carbon": "organicCarbon",
+      "Trihalomethanes": "trihalomethanes",
+      "Turbidity": "turbidity"
+    }
+  },
+  "outputEntityType": {
+    "type": "Property",
+    "value": "MLPrediction"
+  },
+  "processingStatus": {
+    "type": "Property",
+    "value": "active"
+  },
+  "@context": {
+    "@vocab": "https://example.org/fiware-mlaas/terms/",
+    "id": "@id",
+    "type": "@type",
+    "Relationship": "https://uri.etsi.org/ngsi-ld/Relationship",
+    "Property": "https://uri.etsi.org/ngsi-ld/Property",
+    "object": {
+      "@id": "https://uri.etsi.org/ngsi-ld/hasObject",
+      "@type": "@id"
+    },
+    "value": "https://uri.etsi.org/ngsi-ld/hasValue",
+    "observedAt": {
+      "@id": "https://uri.etsi.org/ngsi-ld/observedAt",
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+    }
+  }
+}
