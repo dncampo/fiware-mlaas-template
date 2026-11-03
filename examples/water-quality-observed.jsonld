@@ -46,19 +46,48 @@
     "value": 4.5
   },
   "@context": {
-    "@vocab": "https://example.org/fiware-mlaas/terms/",
+    "@vocab": "https://github.com/dncampo/fiware-mlaas-template/terms/",
     "id": "@id",
     "type": "@type",
-    "Relationship": "https://uri.etsi.org/ngsi-ld/Relationship",
-    "Property": "https://uri.etsi.org/ngsi-ld/Property",
+    "Property": "ngsi-ld:Property",
+    "Relationship": "ngsi-ld:Relationship",
+    "value": "ngsi-ld:hasValue",
     "object": {
-      "@id": "https://uri.etsi.org/ngsi-ld/hasObject",
+      "@id": "ngsi-ld:hasObject",
       "@type": "@id"
     },
-    "value": "https://uri.etsi.org/ngsi-ld/hasValue",
     "observedAt": {
-      "@id": "https://uri.etsi.org/ngsi-ld/observedAt",
-      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
-    }
+      "@id": "ngsi-ld:observedAt",
+      "@type": "DateTime"
+    },
+    "Subscription": "ngsi-ld:Subscription",
+    "entities": "ngsi-ld:entities",
+    "watchedAttributes": {
+      "@id": "ngsi-ld:watchedAttributes",
+      "@type": "@vocab"
+    },
+    "q": "ngsi-ld:q",
+    "notification": "ngsi-ld:notification",
+    "endpoint": "ngsi-ld:endpoint",
+    "uri": "ngsi-ld:uri",
+    "accept": "ngsi-ld:accept",
+    "format": "ngsi-ld:format",
+    "ngsi-ld": "https://uri.etsi.org/ngsi-ld/",
+    "MLModel": "https://smartdatamodels.org/dataModel.MachineLearning/MLModel",
+    "MLProcessing": "https://smartdatamodels.org/dataModel.MachineLearning/MLProcessing",
+    "name": "https://smartdatamodels.org/name",
+    "description": "http://purl.org/dc/terms/description",
+    "algorithm": "https://smartdatamodels.org/dataModel.MachineLearning/algorithm",
+    "mlFramework": "https://smartdatamodels.org/dataModel.MachineLearning/mlFramework",
+    "version": "https://smartdatamodels.org/dataModel.MachineLearning/version",
+    "inputAttributes": "https://smartdatamodels.org/dataModel.MachineLearning/inputAttributes",
+    "outputAttributes": "https://smartdatamodels.org/dataModel.MachineLearning/outputAttributes",
+    "outputDataTypes": "https://smartdatamodels.org/dataModel.MachineLearning/outputDataTypes",
+    "refMLModel": "https://smartdatamodels.org/dataModel.MachineLearning/refMLModel",
+    "refMLProcessing": "https://smartdatamodels.org/dataModel.MachineLearning/refMLProcessing",
+    "dockerImage": "https://smartdatamodels.org/dataModel.MachineLearning/dockerImage",
+    "WaterQualityObserved": "https://smartdatamodels.org/dataModel.WaterQuality/WaterQualityObserved",
+    "conductivity": "https://smartdatamodels.org/dataModel.WaterQuality/conductivity",
+    "turbidity": "https://smartdatamodels.org/dataModel.WaterQuality/turbidity"
   }
 }

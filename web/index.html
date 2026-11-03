@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FIWARE MLaaS | Runtime</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<header><div><small>FIWARE / NGSI-LD / CONVENTIONAL ML</small><h1>Inference, in context.</h1><p>A live view of observations becoming traceable predictions.</p></div><span id="connection" role="status">Connecting</span></header>
+<main>
+<section class="flow" aria-label="Processing flow"><span>01 Observation</span><b>&gt;</b><span>02 Broker subscription</span><b>&gt;</b><span>03 Adapter</span><b>&gt;</b><span>04 Model HTTP</span><b>&gt;</b><span>05 MLPrediction</span></section>
+<div class="toolbar"><div><h2>Replay reserved samples</h2><p>Original measurements, new immutable IDs. Labels stay offline.</p></div><form id="replay"><label>Start row <input id="start" type="number" min="0" value="0"></label><label>Count <input id="count" type="number" min="1" max="100" value="10"></label><button type="button" id="one">Inject one</button><button type="submit">Replay batch</button></form></div>
+<p id="message" role="status"></p>
+<div class="grid"><section class="panel"><h2>Deployed models <span id="model-count"></span></h2><div id="models"></div></section><section class="panel"><h2>Processing and subscriptions</h2><div id="processings"></div></section></div>
+<section class="panel"><div class="title"><h2>Observations and outcomes</h2><span id="totals"></span></div><p>The broker applies the configured type, watched attributes and q filter. A missing notification is reported as unobserved; it may be a nonmatch or still in flight.</p><div class="table-wrap"><table><thead><tr><th>Sample / source</th><th>Turbidity</th><th>Notification</th><th>Prediction / provenance</th></tr></thead><tbody id="observations"></tbody></table></div></section>
+<section class="panel"><div class="title"><h2>Execution trace</h2><span>Recorded events / newest first</span></div><div id="events" aria-live="polite"></div></section>
+<section class="panel"><h2>Payload inspector</h2><p>Select a model, processing, source, prediction or trace event.</p><pre id="inspector">No payload selected.</pre></section>
+<footer>Water Potability is a teaching dataset. Replay time is not measurement time. This classifier does not establish water safety.</footer>
+</main>
+</body>
+</html>

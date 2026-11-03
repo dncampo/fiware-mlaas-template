@@ -86,7 +86,7 @@ Example configuration:
 | `sampleId` | source row identity | string Property | Yes |
 | `sourceDataset` | provenance | string Property | Yes |
 
-**Important:** the input dataset has missing values. Define an interoperable null/missing-attribute policy before implementation; the ML preprocessing pipeline owns imputation. The sample `Potability` label is **not** published as an input property. The official `WaterQualityObserved` model may use **different property names** or represent different semantics; map and document every project extension after checking its schema. Do not assume units when the dataset does not explicitly justify them. `observedAt` belongs on each measurement Property where meaningful; do not fabricate a historical acquisition time from playback time.
+**Important:** the input dataset has missing values. The implemented missing-attribute policy is resolved below; the ML preprocessing pipeline owns imputation. The sample `Potability` label is **not** published as an input property. The official `WaterQualityObserved` model may use **different property names** or represent different semantics; map and document every project extension after checking its schema. Do not assume units when the dataset does not explicitly justify them. `observedAt` belongs on each measurement Property where meaningful; do not fabricate a historical acquisition time from playback time.
 
 ## 4. MLPrediction
 
@@ -120,7 +120,7 @@ flowchart TD
 
 ## NGSI-LD context and examples
 
-See `examples/`. Examples use a **project-owned example namespace** for custom terms and have only been JSON syntax checked. Prior to runtime, map official Smart Data Model fields to their official terms and verify with an actual broker. The examples should not be mistaken for official Smart Data Model-compliant payloads until verified.
+See `examples/`. Examples use explicit official vocabulary mappings and a repository namespace for project extensions. All four types and the subscription example pass direct coraine API tests. This tests NGSI-LD interoperability, not full official Smart Data Model schema conformance; see [verification](implementation.md).
 
 ## Source references and deliberate differences
 
@@ -128,3 +128,29 @@ See `examples/`. Examples use a **project-owned example namespace** for custom t
 - *ML as a Service – Specifications*, pp. 5–8: `MLProcessing` drives a subscription; source inputs are transformed into model features; original proposal writes output attributes on the source entity.
 - **Deliberate deviation:** we instead emit standalone `MLPrediction` with three explicit Relationships, keeping source immutable and lineage direct.
 - *ML as a Service – Specifications*, pp. 9–10: `MLProcessing`, `MLModel`, `subscriptionData` and future need for multiple inputs/windowing. Those enhancements are out of scope for the template MVP.
+
+## Implementation vocabulary decisions (2026-11-03)
+
+See [implementation notes](implementation.md) and
+[`contexts/context.jsonld`](../contexts/context.jsonld) for the checked official
+mappings. `ph` and `sulfate` retain project terms rather than silently adopting
+the official `pH` and `sulphate` spelling and semantics. `conductivity` and
+`turbidity` reuse official terms. No units or historical observation times are
+invented. Real broker CRUD and subscription validation passes; vocabulary reuse alone is
+not full SDM conformance.
+
+## Resolved missing-value policy and deployment metadata
+
+`missingInputFeatures` (Property/array of feature names) is a project MLModel
+extension. For the water model it is `ph`, `Sulfate`, `Trihalomethanes`. An absent
+measurement is allowed only for a feature explicitly listed there; the adapter
+passes JSON null to the deployed pipeline. This resolves the table's required
+measurement ambiguity: missing source values are omitted, never broker nulls or
+injector-imputed measurements. The trained pipeline owns all imputation.
+
+`artifactSHA256` (Property/string) identifies the serialized preprocessing/model
+pipeline. Serving verifies it at startup. The serving endpoint is fixed to that
+artifact and version; new versions require new endpoints and model IDs.
+`predictionScore` and `scoreMeaning` remain optional contract fields; the current
+class-label serving path omits them. See implementation notes for the broker's
+nine-decimal response serialization limit and application immutability boundary.

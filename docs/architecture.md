@@ -61,10 +61,49 @@ sequenceDiagram
 - No recursive inference: subscriptions watch only input types, not `MLPrediction`.
 - Standard broker subscriptions are **API resources**, not application entities created at `/entities`.
 
-## Unverified implementation dependencies (mandatory smoke tests)
+## Integration checklist (mandatory smoke tests)
+
+Results are recorded in [implementation verification](implementation.md).
 
 - Exact support of `watchedAttributes`, `q`, subscription notifications, and persistent restart in selected coraine version.
 - Semantics for notifications on entity creation; select a reliable trigger strategy and document actual behavior.
 - Network reachability of model URI **inside containers** (do not use browser `localhost` for service-to-service calls).
 - Correct NGSI-LD JSON-LD contexts, property names, official schemas, and data-unit semantics.
 - Deterministic handling of retried notifications (idempotent prediction ID plus conflict behavior).
+
+## Verified implementation decisions
+
+Coraine `0.6.1-post-2026-11-03-7299e496` passes the direct API smoke tests with
+corDB persistence. Matching entity creation triggers a notification; changes to
+unwatched properties do not. The implementation uses creation-only replay.
+No alternate application trigger is needed.
+
+FastAPI hosts both the generic adapter and a static dashboard. The dashboard polls
+`/state` and `/events` every second. `mlaas/demo.py` contains only the water-specific
+replay endpoint; it never invokes a model. The broker remains responsible for q.
+
+An explicit processing registration command calls `/processings/reconcile`.
+That operation validates and pins model/processing configuration, uses a stable
+standard subscription ID and records `refSubscription`. Pausing and reconciling
+deletes the subscription. Requests already accepted into the local job journal
+drain. Changed bindings require new processing IDs.
+
+Notifications are committed to a small SQLite job journal before acknowledgment.
+One worker fetches sources, validates/maps numeric features, invokes MLflow and
+publishes predictions. This is local process state, not a new context entity or
+an orchestration service. Transport/server failures retry with capped backoff;
+invalid input fails visibly. Jobs and trace events survive adapter restarts.
+There is one adapter process and one inference worker in v1.
+
+The serving command checks the pinned artifact's version and SHA256, then starts
+standard MLflow Models serving. The Compose service serves v1 explicitly, with
+artifacts mounted read-only. New model versions need separate serving endpoints;
+never silently replace the artifact behind an existing endpoint.
+
+Source immutability is an application contract, not a broker access-control rule.
+The injector only creates new IDs. The worker stores a source fingerprint and
+checks it on retries and before publication. A deployment with untrusted writers
+would need broker authorization outside this local v1 scope.
+
+See [verification and limitations](implementation.md), including JSON-LD
+compaction and numeric serialization behavior observed in the selected broker.
