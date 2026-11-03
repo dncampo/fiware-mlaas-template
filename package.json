@@ -1,0 +1,7 @@
+{
+  "name": "fiware-mlaas-dashboard-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {"test:dashboard": "node tests/dashboard.mjs"},
+  "devDependencies": {"jsdom": "26.1.0"}
+}

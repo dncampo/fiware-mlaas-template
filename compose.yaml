@@ -1,0 +1,38 @@
+services:
+  broker:
+    image: quay.io/seamware/coraine:0.6.1-post-2026-11-03-7299e496
+    command: ["--database", "corDB", "--dbDir", "/data", "--troe", "none"]
+    ports: ["127.0.0.1:1026:1026"]
+    volumes: ["broker-data:/data"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    restart: unless-stopped
+  ml-serving:
+    build: .
+    command: ["python", "-m", "mlaas.serve", "--artifact", "/artifacts/water-potability/v1"]
+    volumes: ["./artifacts:/artifacts:ro"]
+    ports: ["127.0.0.1:5001:5000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/ping')"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  ml-adapter:
+    build: .
+    command: ["uvicorn", "mlaas.adapter:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      BROKER_URL: http://broker:1026
+      ADAPTER_URL: http://ml-adapter:8000
+      STATE_DB: /state/adapter.db
+      DEMO_DIR: /artifacts/water-potability/v1
+    volumes: ["adapter-data:/state", "./artifacts:/artifacts:ro"]
+    ports: ["127.0.0.1:8000:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    depends_on: [broker]
+    restart: unless-stopped
+volumes:
+  broker-data:
+  adapter-data:

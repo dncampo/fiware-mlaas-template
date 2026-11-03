@@ -1,0 +1,260 @@
+:root {
+  font-family:Arial,Helvetica,sans-serif;
+  color:#202b32;
+  background:#f3f5f5;
+  font-size:14px;
+}
+* {
+  box-sizing:border-box;
+}
+body {
+  margin:0;
+}
+header {
+  padding:36px max(24px,calc((100vw - 1280px)/2));
+  background:#17373c;
+  color:white;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+small {
+  letter-spacing:2px;
+  font-size:11px;
+  color:#bdd6d7;
+}
+h1 {
+  font-size:34px;
+  letter-spacing:-1px;
+  margin:12px 0;
+}
+h2 {
+  font-size:17px;
+  margin:0 0 12px;
+}
+p {
+  color:#5d6b70;
+  line-height:1.5;
+  margin:8px 0;
+}
+header p {
+  color:#c0d0d2;
+}
+#connection {
+  border:1px solid #658384;
+  padding:8px 12px;
+  border-radius:3px;
+  font-size:12px;
+  white-space:nowrap;
+}
+main {
+  max-width:1328px;
+  margin:auto;
+  padding:24px;
+}
+.flow {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:18px 20px;
+  background:#e3ebea;
+  font-family:monospace;
+  font-size:12px;
+  flex-wrap:wrap;
+  margin-bottom:24px;
+}
+.flow b {
+  color:#69908d;
+}
+.toolbar,.title {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+.toolbar {
+  padding:0 0 10px;
+}
+form {
+  display:flex;
+  align-items:end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+label {
+  display:flex;
+  flex-direction:column;
+  font-size:11px;
+  gap:5px;
+  color:#5d6b70;
+}
+input {
+  width:80px;
+  padding:9px;
+  border:1px solid #b9c4c6;
+  border-radius:3px;
+  font:inherit;
+}
+button {
+  cursor:pointer;
+  background:#23615e;
+  border:1px solid #23615e;
+  color:white;
+  padding:10px 13px;
+  border-radius:3px;
+}
+button:hover {
+  background:#164a47;
+}
+button:disabled {
+  opacity:.5;
+  cursor:wait;
+}
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+.panel {
+  padding:22px;
+  background:white;
+  border:1px solid #dce2e3;
+  border-radius:4px;
+  margin-bottom:18px;
+}
+.title span,#model-count {
+  font-size:12px;
+  font-weight:normal;
+  color:#68797d;
+}
+.card {
+  padding:12px 0;
+  border-top:1px solid #e3e8e8;
+}
+.card p {
+  font-size:12px;
+}
+.card code {
+  font-size:11px;
+  overflow-wrap:anywhere;
+}
+.link {
+  background:none;
+  border:0;
+  color:#185d64;
+  padding:0;
+  text-align:left;
+  font:inherit;
+  cursor:pointer;
+  overflow-wrap:anywhere;
+}
+.link:hover {
+  background:none;
+  text-decoration:underline;
+}
+.tag {
+  display:inline-block;
+  padding:4px 7px;
+  font:11px monospace;
+  background:#eaf1ef;
+  color:#2b6658;
+  border-radius:2px;
+}
+.muted {
+  color:#839196;
+}
+.table-wrap {
+  overflow:auto;
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+}
+th {
+  text-align:left;
+  padding:12px 8px;
+  color:#66797b;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+  border-bottom:1px solid #ccd6d6;
+}
+td {
+  padding:13px 8px;
+  border-bottom:1px solid #edf0f0;
+  max-width:500px;
+  overflow-wrap:anywhere;
+}
+td small {
+  color:#647b7e;
+  letter-spacing:0;
+  display:block;
+  margin-top:5px;
+}
+.trace {
+  display:grid;
+  grid-template-columns:180px 150px 1fr;
+  gap:15px;
+  border-top:1px solid #edf0f0;
+  padding:9px 0;
+  font-size:12px;
+}
+.trace time {
+  font-family:monospace;
+  color:#728487;
+}
+.error {
+  color:#a83e2e;
+}
+.trace .link {
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#events {
+  max-height:340px;
+  overflow:auto;
+}
+pre {
+  font:12px/1.6 monospace;
+  max-height:480px;
+  overflow:auto;
+  background:#f5f7f7;
+  padding:16px;
+  margin-bottom:0;
+}
+footer {
+  font-size:11px;
+  color:#758587;
+  padding:8px 0 24px;
+}
+#message {
+  min-height:21px;
+  font-size:12px;
+}
+@media(max-width:850px) {
+  .grid {
+    grid-template-columns:1fr;
+  }
+  .toolbar {
+    align-items:start;
+    flex-direction:column;
+  }
+  header {
+    padding:24px;
+    gap:20px;
+  }
+  h1 {
+    font-size:27px;
+  }
+  .trace {
+    grid-template-columns:125px 110px 1fr;
+  }
+  main {
+    padding:14px;
+  }
+  .panel {
+    padding:16px;
+  }
+}

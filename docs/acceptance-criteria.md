@@ -20,3 +20,28 @@ All checks refer to **real** observed behavior, not mocked frontend animations. 
 ## Deferred
 
 Training initiated from UI, automatic redeployment, threshold crossing detection (as opposed to current-state `q` filtering), geospatial demo, multiple input observations per inference, multi-version comparisons, windows, drift, automatic retraining, advanced auth and scalability.
+
+## Verification record (2026-11-03)
+
+The complete flagged Python suite passed: **6 tests, 28.27 seconds, no skips**.
+The dashboard DOM suite also passed against live services. See
+[implementation notes](implementation.md) for commands, environment and limits.
+
+| ID | Result and evidence |
+|---|---|
+| AC-01 | Passed: Compose built and started all services with readiness checks; adapter, broker and native MLflow HTTP serving communicate. Dashboard HTML and JavaScript tested through HTTP. |
+| AC-02 | Passed: direct API smoke creates/retrieves/deletes all four types and preserves Relationship objects using real JSON-LD contexts. |
+| AC-03 | Passed: processing registration/reconciliation creates a real subscription and records its ID; repeat reconciliation and pause/deletion tested. |
+| AC-04 | Passed: matching/nonmatching creations and watched/unwatched updates tested against coraine; behavior documented in architecture. |
+| AC-05 | Passed: deterministic split manifest, complete/disjoint row sets and training-only imputer statistics checked against saved pipeline. |
+| AC-06 | Passed: artifact and metrics generated; independent `/invocations` returns a class. Serving verifies version and model checksum; corrupt artifact rejected. |
+| AC-07 | Passed: real broker notifications cause model HTTP requests and prediction publication. Serving outage and subsequent recovery also tested. |
+| AC-08 | Passed: each prediction's source/model/processing IDs checked; source API representation unchanged; payload inspector and model link tested. |
+| AC-09 | Passed: ten matching samples yield ten prediction IDs for the tested processing; three duplicate deliveries add no inference. Journal deduplication also survives restart. |
+| AC-10 | Passed: generated outputs do not cause additional inference or appear as input notification types. Output/system types also rejected in processing selectors. |
+| AC-11 | Functional DOM check passed with real model/processing/subscription data, timestamps, events, one/batch replay and outcomes. Visual browser layout inspection unavailable in this session; no visual QA claim. |
+| AC-12 | Adaptation guide and contracts reviewed against generic adapter behavior. Dataset-specific replay code is isolated. A second dataset/classifier has not been executed; portability beyond the tested water example is unverified. |
+
+No full official SDM schema conformance or exact decimal-text roundtrip is
+claimed. No Orion-LD fallback was needed or tested. MLflow's dependency
+Pydantic deprecation warnings do not affect the tested flows.

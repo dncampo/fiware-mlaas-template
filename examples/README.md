@@ -1,7 +1,13 @@
-# Illustrative JSON-LD examples — not yet broker-validated
+# JSON-LD examples - verified with coraine
 
-These five examples describe the intended **project contracts** and use a placeholder vocabulary `https://example.org/fiware-mlaas/terms/`. They are syntactically valid JSON, but have **not** been verified against official Smart Data Model schemas, a resolved production JSON-LD context, or a running NGSI-LD broker.
+These five examples use the inline vocabulary in `contexts/context.jsonld`.
+Standard NGSI-LD terms and selected official Smart Data Model terms are mapped
+explicitly. Project extensions use the repository's vocabulary namespace.
+See `docs/implementation.md` for the exact source-versus-extension decisions.
 
-Before implementation: assign real canonical JSON-LD terms for official SDM properties, host/resolve the project-specific context, verify validation and subscription behavior, and align the nine Water Potability CSV features with confirmed input property semantics.
+All five payloads pass the direct API smoke test against the pinned coraine
+broker. The model and prediction examples remain illustrative metadata/output;
+the CLI registers measured metadata from the trained artifact. No full official
+Smart Data Model schema conformance is claimed.
 
 `predictedValue=1` and `predictionScore=0.82` are illustrative, not observed model output. `turbidity>4` is a **synthetic demonstration filter**, not a regulatory threshold. The example observation values are synthetic and should not be cited as the real Water Potability dataset.
